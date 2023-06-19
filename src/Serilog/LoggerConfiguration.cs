@@ -125,6 +125,22 @@ public class LoggerConfiguration
     /// disposed.</remarks>
     /// <exception cref="InvalidOperationException">When the logger is already created</exception>
     public Logger CreateLogger()
+#if FEATURE_TIME_PROVIDER
+    {
+        return CreateLogger(TimeProvider.System);
+    }
+
+    /// <summary>
+    /// Create a logger using the configured sinks, enrichers and minimum level.
+    /// </summary>
+    /// <param name="timeProvider">The <see cref="TimeProvider"/> used to provide log event timestamps.</param>
+    /// <returns>The logger.</returns>
+    /// <remarks>To free resources held by sinks ahead of program shutdown,
+    /// the returned logger may be cast to <see cref="IDisposable"/> and
+    /// disposed.</remarks>
+    /// <exception cref="InvalidOperationException">When the logger is already created</exception>
+    public Logger CreateLogger(TimeProvider timeProvider)
+#endif
     {
         if (_loggerCreated) throw new InvalidOperationException("CreateLogger() was previously called and can only be called once.");
 
@@ -210,6 +226,9 @@ public class LoggerConfiguration
 
         return new(
             processor,
+#if FEATURE_TIME_PROVIDER
+            timeProvider,
+#endif
             _levelSwitch != null ? LevelAlias.Minimum : _minimumLevel, _levelSwitch,
             sink,
             enricher,

@@ -836,6 +836,7 @@ namespace Serilog
         public Serilog.Configuration.LoggerSettingsConfiguration ReadFrom { get; }
         public Serilog.Configuration.LoggerSinkConfiguration WriteTo { get; }
         public Serilog.Core.Logger CreateLogger() { }
+        public Serilog.Core.Logger CreateLogger(System.TimeProvider timeProvider) { }
     }
     public static class LoggerExtensions
     {

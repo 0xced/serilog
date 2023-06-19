@@ -14,7 +14,11 @@ public class DelegatingSink : ILogEventSink
         _write(logEvent);
     }
 
-    public static LogEvent GetLogEvent(Action<ILogger> writeAction, Func<LoggerConfiguration, LoggerConfiguration>? configure = null)
+    public static LogEvent GetLogEvent(Action<ILogger> writeAction, Func<LoggerConfiguration, LoggerConfiguration>? configure = null
+#if FEATURE_TIME_PROVIDER
+        , TimeProvider? timeProvider = null
+#endif
+    )
     {
         LogEvent? result = null;
         var configuration = new LoggerConfiguration()
@@ -24,7 +28,11 @@ public class DelegatingSink : ILogEventSink
         if (configure != null)
             configuration = configure(configuration);
 
-        var l = configuration.CreateLogger();
+        var l = configuration.CreateLogger(
+#if FEATURE_TIME_PROVIDER
+                timeProvider ?? TimeProvider.System
+#endif
+            );
 
         writeAction(l);
         Assert.NotNull(result);

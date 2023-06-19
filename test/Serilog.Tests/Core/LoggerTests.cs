@@ -188,7 +188,7 @@ public class LoggerTests
         var delegatingLogger = new DelegatingLogger(innerLogger);
 
         var log = ((ILogger)delegatingLogger).ForContext("number", 42)
-                                             .ForContext(new PropertyEnricher("type", "string"));
+            .ForContext(new PropertyEnricher("type", "string"));
 
         log.Debug("suppressed");
         Assert.Empty(collectingSink.Events);
@@ -444,5 +444,15 @@ public class LoggerTests
         Assert.True(sink.IsDisposedAsync);
     }
 
+#endif
+
+#if FEATURE_TIME_PROVIDER
+    [Fact]
+    public void EventTimestampComesFromTimeProvider()
+    {
+        var timeProvider = new Microsoft.Extensions.Time.Testing.FakeTimeProvider(DateTimeOffset.UnixEpoch);
+        var e = DelegatingSink.GetLogEvent(l => l.Information("Hello"), timeProvider: timeProvider);
+        Assert.Equal(DateTimeOffset.UnixEpoch, e.Timestamp);
+    }
 #endif
 }
