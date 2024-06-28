@@ -451,7 +451,7 @@ public class LoggerTests
     public void EventTimestampComesFromTimeProvider()
     {
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UnixEpoch);
-        var e = DelegatingSink.GetLogEvent(l => l.Information("Hello"), timeProvider: timeProvider);
+        var e = DelegatingSink.GetLogEvent(l => l.Information("Hello"), cfg => cfg.TimeProvider(timeProvider));
         Assert.Equal(DateTimeOffset.UnixEpoch, e.Timestamp);
     }
 }

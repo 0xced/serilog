@@ -29,6 +29,7 @@ public class LoggerConfiguration
     readonly Dictionary<string, LoggingLevelSwitch> _overrides = new();
     LogEventLevel _minimumLevel = LogEventLevel.Information;
     LoggingLevelSwitch? _levelSwitch;
+    TimeProvider _timeProvider = System.TimeProvider.System;
     int _maximumDestructuringDepth = 10;
     int _maximumStringLength = int.MaxValue;
     int _maximumCollectionCount = int.MaxValue;
@@ -117,6 +118,16 @@ public class LoggerConfiguration
     public LoggerSettingsConfiguration ReadFrom => new(this);
 
     /// <summary>
+    /// Configure how to get the current date and time for the log event timestamps.
+    /// </summary>
+    /// <returns>Configuration object allowing method chaining.</returns>
+    public LoggerConfiguration TimeProvider(TimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider;
+        return this;
+    }
+
+    /// <summary>
     /// Create a logger using the configured sinks, enrichers and minimum level.
     /// </summary>
     /// <returns>The logger.</returns>
@@ -125,20 +136,6 @@ public class LoggerConfiguration
     /// disposed.</remarks>
     /// <exception cref="InvalidOperationException">When the logger is already created</exception>
     public Logger CreateLogger()
-    {
-        return CreateLogger(TimeProvider.System);
-    }
-
-    /// <summary>
-    /// Create a logger using the configured sinks, enrichers and minimum level.
-    /// </summary>
-    /// <param name="timeProvider">The <see cref="TimeProvider"/> used to provide log event timestamps.</param>
-    /// <returns>The logger.</returns>
-    /// <remarks>To free resources held by sinks ahead of program shutdown,
-    /// the returned logger may be cast to <see cref="IDisposable"/> and
-    /// disposed.</remarks>
-    /// <exception cref="InvalidOperationException">When the logger is already created</exception>
-    public Logger CreateLogger(TimeProvider timeProvider)
     {
         if (_loggerCreated) throw new InvalidOperationException("CreateLogger() was previously called and can only be called once.");
 
@@ -224,7 +221,7 @@ public class LoggerConfiguration
 
         return new(
             processor,
-            timeProvider,
+            _timeProvider,
             _levelSwitch != null ? LevelAlias.Minimum : _minimumLevel, _levelSwitch,
             sink,
             enricher,
