@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.Extensions.Time.Testing;
 
 #pragma warning disable Serilog004 // Constant MessageTemplate verifier
 #pragma warning disable Serilog003 // Property binding verifier
@@ -446,13 +447,11 @@ public class LoggerTests
 
 #endif
 
-#if FEATURE_TIME_PROVIDER
     [Fact]
     public void EventTimestampComesFromTimeProvider()
     {
-        var timeProvider = new Microsoft.Extensions.Time.Testing.FakeTimeProvider(DateTimeOffset.UnixEpoch);
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.UnixEpoch);
         var e = DelegatingSink.GetLogEvent(l => l.Information("Hello"), timeProvider: timeProvider);
         Assert.Equal(DateTimeOffset.UnixEpoch, e.Timestamp);
     }
-#endif
 }

@@ -32,9 +32,7 @@ public sealed class Logger : ILogger, ILogEventSink, IDisposable
     static readonly LogEventProperty[] NoProperties = Array.Empty<LogEventProperty>();
 
     readonly MessageTemplateProcessor _messageTemplateProcessor;
-#if FEATURE_TIME_PROVIDER
     readonly TimeProvider _timeProvider;
-#endif
     readonly ILogEventSink _sink;
     readonly Action? _dispose;
 #if FEATURE_ASYNCDISPOSABLE
@@ -53,9 +51,7 @@ public sealed class Logger : ILogger, ILogEventSink, IDisposable
 
     internal Logger(
         MessageTemplateProcessor messageTemplateProcessor,
-#if FEATURE_TIME_PROVIDER
         TimeProvider timeProvider,
-#endif
         LogEventLevel minimumLevel,
         LoggingLevelSwitch? levelSwitch,
         ILogEventSink sink,
@@ -67,9 +63,7 @@ public sealed class Logger : ILogger, ILogEventSink, IDisposable
         LevelOverrideMap? overrideMap)
     {
         _messageTemplateProcessor = messageTemplateProcessor;
-#if FEATURE_TIME_PROVIDER
         _timeProvider = timeProvider;
-#endif
         _minimumLevel = minimumLevel;
         _sink = sink;
         _dispose = dispose;
@@ -95,9 +89,7 @@ public sealed class Logger : ILogger, ILogEventSink, IDisposable
 
         return new Logger(
             _messageTemplateProcessor,
-#if FEATURE_TIME_PROVIDER
             _timeProvider,
-#endif
             _minimumLevel,
             _levelSwitch,
             this,
@@ -159,9 +151,7 @@ public sealed class Logger : ILogger, ILogEventSink, IDisposable
 
         return new Logger(
             _messageTemplateProcessor,
-#if FEATURE_TIME_PROVIDER
             _timeProvider,
-#endif
             minimumLevel,
             levelSwitch,
             this,
@@ -431,7 +421,7 @@ public sealed class Logger : ILogger, ILogEventSink, IDisposable
             propertyValues.GetType() != typeof(object[]))
             propertyValues = [propertyValues];
 
-        var logTimestamp = GetTimestamp();
+        var logTimestamp = _timeProvider.GetLocalNow();
 #if FEATURE_SPAN
         var propertiesSpan = propertyValues == null ? Span<object?>.Empty : propertyValues.AsSpan();
         _messageTemplateProcessor.Process(messageTemplate, propertiesSpan, out var parsedTemplate, out var boundProperties);
@@ -451,7 +441,7 @@ public sealed class Logger : ILogger, ILogEventSink, IDisposable
         if (!IsEnabled(level)) return;
         if (messageTemplate == null) return;
 
-        var logTimestamp = GetTimestamp();
+        var logTimestamp = _timeProvider.GetLocalNow();
         _messageTemplateProcessor.Process(messageTemplate, propertyValues, out var parsedTemplate, out var boundProperties);
 
         var currentActivity = Activity.Current;
@@ -459,15 +449,6 @@ public sealed class Logger : ILogger, ILogEventSink, IDisposable
         Dispatch(logEvent);
     }
 #endif
-
-    DateTimeOffset GetTimestamp()
-    {
-#if FEATURE_TIME_PROVIDER
-        return _timeProvider.GetLocalNow();
-#else
-        return DateTimeOffset.Now;
-#endif
-    }
 
     /// <summary>
     /// Write an event to the log.

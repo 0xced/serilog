@@ -125,7 +125,6 @@ public class LoggerConfiguration
     /// disposed.</remarks>
     /// <exception cref="InvalidOperationException">When the logger is already created</exception>
     public Logger CreateLogger()
-#if FEATURE_TIME_PROVIDER
     {
         return CreateLogger(TimeProvider.System);
     }
@@ -140,7 +139,6 @@ public class LoggerConfiguration
     /// disposed.</remarks>
     /// <exception cref="InvalidOperationException">When the logger is already created</exception>
     public Logger CreateLogger(TimeProvider timeProvider)
-#endif
     {
         if (_loggerCreated) throw new InvalidOperationException("CreateLogger() was previously called and can only be called once.");
 
@@ -226,9 +224,7 @@ public class LoggerConfiguration
 
         return new(
             processor,
-#if FEATURE_TIME_PROVIDER
             timeProvider,
-#endif
             _levelSwitch != null ? LevelAlias.Minimum : _minimumLevel, _levelSwitch,
             sink,
             enricher,
